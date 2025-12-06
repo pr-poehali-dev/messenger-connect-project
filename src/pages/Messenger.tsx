@@ -7,6 +7,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import ProfileEditor from '@/components/ProfileEditor';
 import VideoCall from '@/components/VideoCall';
+import SubscriptionPanel from '@/components/SubscriptionPanel';
+import StickerCreator from '@/components/StickerCreator';
+import MusicPlayer from '@/components/MusicPlayer';
+import WallpaperGallery from '@/components/WallpaperGallery';
+import { getDragonRank } from '@/utils/ratingSystem';
 
 interface Chat {
   id: number;
@@ -16,6 +21,7 @@ interface Chat {
   unread: number;
   online: boolean;
   avatar: string;
+  rating?: number;
 }
 
 interface Message {
@@ -28,11 +34,11 @@ interface Message {
 }
 
 const mockChats: Chat[] = [
-  { id: 1, name: 'Игровая команда 🎮', lastMessage: 'Го в рейд вечером?', time: '15:42', unread: 3, online: true, avatar: '🎯' },
-  { id: 2, name: 'Мама', lastMessage: 'Не забудь поесть!', time: '14:20', unread: 0, online: true, avatar: '❤️' },
-  { id: 3, name: 'Рабочий чат', lastMessage: 'Митинг в 16:00', time: '13:15', unread: 5, online: false, avatar: '💼' },
-  { id: 4, name: 'Лучший друг', lastMessage: 'Видел новый трейлер?', time: '12:08', unread: 1, online: true, avatar: '🤘' },
-  { id: 5, name: 'Киноклуб 🎬', lastMessage: 'Кто за хоррор в пятницу?', time: '11:30', unread: 0, online: false, avatar: '🍿' },
+  { id: 1, name: 'Игровая команда 🎮', lastMessage: 'Го в рейд вечером?', time: '15:42', unread: 3, online: true, avatar: '🎯', rating: 12500 },
+  { id: 2, name: 'Мама', lastMessage: 'Не забудь поесть!', time: '14:20', unread: 0, online: true, avatar: '❤️', rating: 450 },
+  { id: 3, name: 'Рабочий чат', lastMessage: 'Митинг в 16:00', time: '13:15', unread: 5, online: false, avatar: '💼', rating: 2800 },
+  { id: 4, name: 'Лучший друг', lastMessage: 'Видел новый трейлер?', time: '12:08', unread: 1, online: true, avatar: '🤘', rating: 7500 },
+  { id: 5, name: 'Киноклуб 🎬', lastMessage: 'Кто за хоррор в пятницу?', time: '11:30', unread: 0, online: false, avatar: '🍿', rating: 350 },
 ];
 
 const mockMessages: Message[] = [
@@ -52,6 +58,16 @@ export default function Messenger() {
   const [showProfileEditor, setShowProfileEditor] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<'gaming' | 'chinese' | 'american'>('gaming');
   const [callState, setCallState] = useState<{ active: boolean; isVideo: boolean } | null>(null);
+  const [showSubscription, setShowSubscription] = useState(false);
+  const [subscriptionTier, setSubscriptionTier] = useState<'free' | 'basic' | 'premium' | 'elite'>('premium');
+  const [showStickers, setShowStickers] = useState(false);
+  const [showMusicPlayer, setShowMusicPlayer] = useState(false);
+  const [isMusicMinimized, setIsMusicMinimized] = useState(false);
+  const [showWallpapers, setShowWallpapers] = useState(false);
+  const [currentWallpaper, setCurrentWallpaper] = useState(1);
+  const [userRating] = useState(12500);
+
+  const userDragonRank = getDragonRank(userRating);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -73,6 +89,23 @@ export default function Messenger() {
     setCallState(null);
   };
 
+  const handleWallpaperChange = (wallpaperId: number) => {
+    setCurrentWallpaper(wallpaperId);
+  };
+
+  const selectedWallpaper = [1, 2, 3, 4, 5, 6, 7, 8, 9].find(id => id === currentWallpaper) || 1;
+  const wallpaperGradients = [
+    'from-slate-900 via-slate-800 to-slate-900',
+    'from-orange-900 via-red-800 to-purple-900',
+    'from-green-900 via-emerald-800 to-teal-900',
+    'from-red-900 via-amber-800 to-orange-900',
+    'from-pink-900 via-rose-800 to-purple-900',
+    'from-blue-900 via-indigo-800 to-purple-900',
+    'from-yellow-900 via-orange-800 to-red-900',
+    'from-indigo-950 via-blue-900 to-slate-900',
+    'from-gray-800 via-slate-700 to-zinc-800'
+  ];
+
   const tabs = [
     { id: 'chats' as const, icon: 'MessageCircle', label: 'Чаты' },
     { id: 'contacts' as const, icon: 'Users', label: 'Контакты' },
@@ -83,7 +116,7 @@ export default function Messenger() {
   ];
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className={`flex h-screen bg-gradient-to-br ${wallpaperGradients[selectedWallpaper - 1]}`}>
       <div className="w-20 bg-card border-r border-border flex flex-col items-center py-6 gap-6">
         <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center animate-pulse-glow">
           <span className="text-2xl">🚀</span>
@@ -106,11 +139,16 @@ export default function Messenger() {
           ))}
         </div>
 
-        <div 
-          className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center cursor-pointer hover:scale-110 transition-transform"
-          onClick={() => setShowProfileEditor(true)}
-        >
-          <span className="text-xl">😎</span>
+        <div className="relative">
+          <div 
+            className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center cursor-pointer hover:scale-110 transition-transform"
+            onClick={() => setShowProfileEditor(true)}
+          >
+            <span className="text-xl">😎</span>
+          </div>
+          <div className={`absolute -top-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-br ${userDragonRank.gradient} flex items-center justify-center border-2 border-card animate-pulse-glow`}>
+            <span className="text-xs">{userDragonRank.emoji}</span>
+          </div>
         </div>
       </div>
 
@@ -147,6 +185,11 @@ export default function Messenger() {
                   {chat.online && (
                     <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-accent rounded-full border-2 border-card animate-pulse-glow" />
                   )}
+                  {chat.rating && (
+                    <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-card border border-border flex items-center justify-center">
+                      <span className="text-xs">{getDragonRank(chat.rating).emoji}</span>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="flex-1 min-w-0">
@@ -178,7 +221,15 @@ export default function Messenger() {
               )}
             </div>
             <div>
-              <h3 className="font-semibold">{selectedChat.name}</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold">{selectedChat.name}</h3>
+                {selectedChat.rating && (
+                  <div className={`flex items-center gap-1 text-xs ${getDragonRank(selectedChat.rating).color}`}>
+                    <span>{getDragonRank(selectedChat.rating).emoji}</span>
+                    <span className="font-semibold">{selectedChat.rating}</span>
+                  </div>
+                )}
+              </div>
               <p className="text-xs text-muted-foreground">
                 {selectedChat.online ? '🟢 онлайн' : 'был(а) недавно'}
               </p>
@@ -186,14 +237,23 @@ export default function Messenger() {
           </div>
 
           <div className="flex gap-2">
+            <Button variant="ghost" size="icon" className="hover:bg-muted rounded-xl" onClick={() => setShowMusicPlayer(!showMusicPlayer)}>
+              <Icon name="Music" size={20} />
+            </Button>
+            <Button variant="ghost" size="icon" className="hover:bg-muted rounded-xl" onClick={() => setShowStickers(true)}>
+              <Icon name="Sticker" size={20} />
+            </Button>
+            <Button variant="ghost" size="icon" className="hover:bg-muted rounded-xl" onClick={() => setShowWallpapers(true)}>
+              <Icon name="Palette" size={20} />
+            </Button>
             <Button variant="ghost" size="icon" className="hover:bg-muted rounded-xl" onClick={() => startCall(false)}>
               <Icon name="Phone" size={20} />
             </Button>
             <Button variant="ghost" size="icon" className="hover:bg-muted rounded-xl" onClick={() => startCall(true)}>
               <Icon name="Video" size={20} />
             </Button>
-            <Button variant="ghost" size="icon" className="hover:bg-muted rounded-xl">
-              <Icon name="MoreVertical" size={20} />
+            <Button variant="ghost" size="icon" className="hover:bg-muted rounded-xl" onClick={() => setShowSubscription(true)}>
+              <Icon name="Crown" size={20} className="text-yellow-500" />
             </Button>
           </div>
         </div>
@@ -288,6 +348,41 @@ export default function Messenger() {
           contactName={selectedChat.name}
           contactAvatar={selectedChat.avatar}
           isVideo={callState.isVideo}
+        />
+      )}
+
+      {showSubscription && (
+        <SubscriptionPanel
+          onClose={() => setShowSubscription(false)}
+          currentSubscription={subscriptionTier}
+          onSubscriptionChange={(tier) => {
+            setSubscriptionTier(tier);
+            setShowSubscription(false);
+          }}
+        />
+      )}
+
+      {showStickers && (
+        <StickerCreator
+          onClose={() => setShowStickers(false)}
+          subscriptionTier={subscriptionTier}
+        />
+      )}
+
+      {showWallpapers && (
+        <WallpaperGallery
+          onClose={() => setShowWallpapers(false)}
+          currentWallpaper={currentWallpaper}
+          onWallpaperChange={handleWallpaperChange}
+          subscriptionTier={subscriptionTier}
+        />
+      )}
+
+      {showMusicPlayer && (
+        <MusicPlayer
+          isMinimized={isMusicMinimized}
+          onToggleMinimize={() => setIsMusicMinimized(!isMusicMinimized)}
+          subscriptionTier={subscriptionTier}
         />
       )}
     </div>
