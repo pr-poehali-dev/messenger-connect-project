@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/icon';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import ProfileEditor from '@/components/ProfileEditor';
+import VideoCall from '@/components/VideoCall';
 
 interface Chat {
   id: number;
@@ -47,6 +49,29 @@ export default function Messenger() {
   const [selectedChat, setSelectedChat] = useState<Chat>(mockChats[0]);
   const [messages] = useState<Message[]>(mockMessages);
   const [messageInput, setMessageInput] = useState('');
+  const [showProfileEditor, setShowProfileEditor] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState<'gaming' | 'chinese' | 'american'>('gaming');
+  const [callState, setCallState] = useState<{ active: boolean; isVideo: boolean } | null>(null);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove('theme-chinese', 'theme-american');
+    if (currentTheme !== 'gaming') {
+      root.classList.add(`theme-${currentTheme}`);
+    }
+  }, [currentTheme]);
+
+  const handleThemeChange = (theme: 'gaming' | 'chinese' | 'american') => {
+    setCurrentTheme(theme);
+  };
+
+  const startCall = (isVideo: boolean) => {
+    setCallState({ active: true, isVideo });
+  };
+
+  const endCall = () => {
+    setCallState(null);
+  };
 
   const tabs = [
     { id: 'chats' as const, icon: 'MessageCircle', label: 'Чаты' },
@@ -81,7 +106,10 @@ export default function Messenger() {
           ))}
         </div>
 
-        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
+        <div 
+          className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center cursor-pointer hover:scale-110 transition-transform"
+          onClick={() => setShowProfileEditor(true)}
+        >
           <span className="text-xl">😎</span>
         </div>
       </div>
@@ -158,10 +186,10 @@ export default function Messenger() {
           </div>
 
           <div className="flex gap-2">
-            <Button variant="ghost" size="icon" className="hover:bg-muted rounded-xl">
+            <Button variant="ghost" size="icon" className="hover:bg-muted rounded-xl" onClick={() => startCall(false)}>
               <Icon name="Phone" size={20} />
             </Button>
-            <Button variant="ghost" size="icon" className="hover:bg-muted rounded-xl">
+            <Button variant="ghost" size="icon" className="hover:bg-muted rounded-xl" onClick={() => startCall(true)}>
               <Icon name="Video" size={20} />
             </Button>
             <Button variant="ghost" size="icon" className="hover:bg-muted rounded-xl">
@@ -245,6 +273,23 @@ export default function Messenger() {
           </div>
         </div>
       </div>
+
+      {showProfileEditor && (
+        <ProfileEditor 
+          onClose={() => setShowProfileEditor(false)}
+          currentTheme={currentTheme}
+          onThemeChange={handleThemeChange}
+        />
+      )}
+
+      {callState?.active && (
+        <VideoCall
+          onClose={endCall}
+          contactName={selectedChat.name}
+          contactAvatar={selectedChat.avatar}
+          isVideo={callState.isVideo}
+        />
+      )}
     </div>
   );
 }

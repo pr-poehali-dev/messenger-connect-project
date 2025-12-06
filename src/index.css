@@ -45,6 +45,34 @@
     --sidebar-border: 222 30% 25%;
     --sidebar-ring: 258 90% 66%;
   }
+
+  .theme-chinese {
+    --background: 10 30% 10%;
+    --foreground: 0 0% 100%;
+    --card: 10 30% 15%;
+    --card-foreground: 0 0% 100%;
+    --primary: 0 85% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 45 95% 55%;
+    --secondary-foreground: 0 0% 0%;
+    --accent: 0 85% 50%;
+    --muted: 10 20% 20%;
+    --border: 0 40% 30%;
+  }
+
+  .theme-american {
+    --background: 220 15% 12%;
+    --foreground: 0 0% 100%;
+    --card: 220 15% 18%;
+    --card-foreground: 0 0% 100%;
+    --primary: 210 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 85% 55%;
+    --secondary-foreground: 0 0% 100%;
+    --accent: 210 100% 50%;
+    --muted: 220 10% 25%;
+    --border: 220 15% 30%;
+  }
 }
 
 @layer base {
